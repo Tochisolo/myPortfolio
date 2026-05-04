@@ -5,10 +5,6 @@ import { FaEnvelope, FaMapMarkerAlt, FaPhoneAlt, FaPaperPlane } from "react-icon
 import SectionHeader from "../components/SectionHeader";
 import Useinview from "../hooks/Useinview";
 
-// ─── EMAILJS CREDENTIALS ───────────
-const EMAILJS_SERVICE_ID  = "service_ebrbnan";
-const EMAILJS_TEMPLATE_ID = "template_w7c2q21";
-const EMAILJS_PUBLIC_KEY  = "X15viW5SbQsCqN8hU";
 
 const contactDetails = [
   { icon: FaEnvelope,     label: "Email",    value: contactInfo.email },
@@ -31,8 +27,8 @@ const Contact = () => {
 
     try {
       await emailjs.send(
-        EMAILJS_SERVICE_ID,
-        EMAILJS_TEMPLATE_ID,
+        process.env.REACT_APP_EMAILJS_SERVICE_ID,
+        process.env.REACT_APP_EMAILJS_TEMPLATE_ID,
         {
           from_name:  form.name,
           from_email: form.email,
@@ -40,7 +36,7 @@ const Contact = () => {
           // This puts the sender's email as reply-to so you can reply directly
           reply_to:   form.email,
         },
-        EMAILJS_PUBLIC_KEY
+        process.env.REACT_APP_EMAILJS_PUBLIC_KEY
       );
 
       setStatus("sent");
