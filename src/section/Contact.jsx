@@ -26,9 +26,14 @@ const Contact = () => {
     setStatus("sending");
 
     try {
+
+      // 1. Ensure the SDK is initialized with your key
+      emailjs.init(import.meta.env.VITE_EMAILJS_PUBLIC_KEY);
+
+
       await emailjs.send(
-        process.env.REACT_APP_EMAILJS_SERVICE_ID,
-        process.env.REACT_APP_EMAILJS_TEMPLATE_ID,
+        import.meta.env.VITE_EMAILJS_SERVICE_ID,
+        import.meta.env.VITE_EMAILJS_TEMPLATE_ID,
         {
           from_name:  form.name,
           from_email: form.email,
@@ -36,7 +41,6 @@ const Contact = () => {
           // This puts the sender's email as reply-to so you can reply directly
           reply_to:   form.email,
         },
-        process.env.REACT_APP_EMAILJS_PUBLIC_KEY
       );
 
       setStatus("sent");
