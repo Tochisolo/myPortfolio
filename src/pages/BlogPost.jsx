@@ -1,8 +1,114 @@
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
-import { FaClock, FaCalendarAlt, FaArrowLeft, FaExternalLinkAlt } from "react-icons/fa";
+import {
+  FaClock,
+  FaCalendarAlt,
+  FaArrowLeft,
+  FaExternalLinkAlt,
+  FaTwitter,
+  FaLinkedin,
+  FaLink,
+  FaCheck,
+} from "react-icons/fa";
 import { fetchPostBySlug, formatDate, getPostUrl } from "../services/Hashnode";
 
+// ─── SOCIAL SHARE HELPERS 
+const shareOnTwitter = (title, url) => {
+  const text = encodeURIComponent(`${title}\n\n`);
+  const link = encodeURIComponent(url);
+  window.open(
+    `https://twitter.com/intent/tweet?text=${text}&url=${link}&via=franciscoshub`,
+    "_blank",
+    "noopener,noreferrer"
+  );
+};
+
+const shareOnLinkedIn = (url) => {
+  const link = encodeURIComponent(url);
+  window.open(
+    `https://www.linkedin.com/sharing/share-offsite/?url=${link}`,
+    "_blank",
+    "noopener,noreferrer"
+  );
+};
+
+// ─── SHARE BAR COMPONENT 
+const ShareBar = ({ title, url, position = "bottom" }) => {
+  const [copied, setCopied] = useState(false);
+
+  const copyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(url);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2500);
+    } catch {
+      // Fallback for older browsers
+      const el = document.createElement("input");
+      el.value = url;
+      document.body.appendChild(el);
+      el.select();
+      document.execCommand("copy");
+      document.body.removeChild(el);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2500);
+    }
+  };
+
+  const isTop = position === "top";
+
+  return (
+    <div
+      className={`flex ${
+        isTop ? "flex-col sm:flex-row items-start sm:items-center" : "flex-col sm:flex-row items-center justify-between"
+      } gap-4 ${isTop ? "mb-10 pb-8 border-b border-dark-border" : "mt-14 pt-8 border-t border-dark-border"}`}
+    >
+      {/* Label */}
+      <p className="text-gray-400 text-sm font-medium whitespace-nowrap">
+        {isTop ? "Share this article:" : "Found this helpful? Share it:"}
+      </p>
+
+      {/* Buttons */}
+      <div className="flex items-center gap-3">
+
+        {/* Twitter / X */}
+        <button
+          onClick={() => shareOnTwitter(title, url)}
+          aria-label="Share on Twitter"
+          className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#1DA1F2]/10 border border-[#1DA1F2]/20 text-[#1DA1F2] text-sm font-medium hover:bg-[#1DA1F2]/20 transition-all duration-200"
+        >
+          <FaTwitter size={14} />
+          <span className="hidden sm:inline">Twitter</span>
+        </button>
+
+        {/* LinkedIn */}
+        <button
+          onClick={() => shareOnLinkedIn(url)}
+          aria-label="Share on LinkedIn"
+          className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#0A66C2]/10 border border-[#0A66C2]/20 text-[#0A66C2] text-sm font-medium hover:bg-[#0A66C2]/20 transition-all duration-200"
+        >
+          <FaLinkedin size={14} />
+          <span className="hidden sm:inline">LinkedIn</span>
+        </button>
+
+        {/* Copy Link */}
+        <button
+          onClick={copyLink}
+          aria-label="Copy link"
+          className={`flex items-center gap-2 px-4 py-2 rounded-lg border text-sm font-medium transition-all duration-200 ${
+            copied
+              ? "bg-green-500/10 border-green-500/20 text-green-400"
+              : "bg-primary/10 border-primary/20 text-primary hover:bg-primary/20"
+          }`}
+        >
+          {copied ? <FaCheck size={13} /> : <FaLink size={13} />}
+          <span className="hidden sm:inline">{copied ? "Copied!" : "Copy Link"}</span>
+        </button>
+      </div>
+    </div>
+  );
+};
+
+// ─── MAIN BLOGPOST COMPONENT ─────────────────────────────────────────────────
 const BlogPost = () => {
   const { slug } = useParams();
   const [post, setPost]       = useState(null);
@@ -10,7 +116,6 @@ const BlogPost = () => {
   const [error, setError]     = useState(null);
 
   useEffect(() => {
-    // Scroll to top when post loads
     window.scrollTo({ top: 0, behavior: "smooth" });
 
     const loadPost = async () => {
@@ -30,7 +135,7 @@ const BlogPost = () => {
     loadPost();
   }, [slug]);
 
-  // ─── LOADING ─
+  // ─── LOADING ────────────────────────────────────────────────────────────────
   if (loading) {
     return (
       <main
@@ -45,7 +150,7 @@ const BlogPost = () => {
     );
   }
 
-  // ─── ERROR ──────
+  // ─── ERROR ──────────────────────────────────────────────────────────────────
   if (error) {
     return (
       <main
@@ -66,7 +171,10 @@ const BlogPost = () => {
     );
   }
 
-  // ─── POST ───
+  // The full URL of this post on your portfolio
+  const postUrl = `${window.location.origin}/blog/${post.slug}`;
+
+  // ─── POST ───────────────────────────────────────────────────────────────────
   return (
     <main style={{ backgroundColor: "#0d0d0d" }} className="min-h-screen">
 
@@ -140,14 +248,20 @@ const BlogPost = () => {
           </span>
         </div>
 
-        {/* Article content — rendered from Hashnode HTML */}
+        {/* SHARE BAR — TOP */}
+        <ShareBar title={post.title} url={postUrl} position="top" />
+
+        {/* Article content */}
         <div
           className="prose-content"
           dangerouslySetInnerHTML={{ __html: post.content.html }}
         />
 
+        {/* SHARE BAR — BOTTOM */}
+        <ShareBar title={post.title} url={postUrl} position="bottom" />
+
         {/* Bottom actions */}
-        <div className="mt-14 pt-8 border-t border-dark-border flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div className="mt-6 flex flex-col sm:flex-row items-center justify-between gap-4">
           <Link
             to="/blog"
             className="inline-flex items-center gap-2 text-sm text-gray-400 hover:text-primary transition-colors duration-200"
