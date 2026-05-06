@@ -5,7 +5,6 @@ import { FaEnvelope, FaMapMarkerAlt, FaPhoneAlt, FaPaperPlane } from "react-icon
 import SectionHeader from "../components/SectionHeader";
 import Useinview from "../hooks/Useinview";
 
-
 const contactDetails = [
   { icon: FaEnvelope,     label: "Email",    value: contactInfo.email },
   { icon: FaMapMarkerAlt, label: "Location", value: contactInfo.location },
@@ -26,26 +25,23 @@ const Contact = () => {
     setStatus("sending");
 
     try {
-
-      // 1. Ensure the SDK is initialized with your key
+      // 1. Initialize EmailJS with the public key
       emailjs.init(import.meta.env.VITE_EMAILJS_PUBLIC_KEY);
-
-
+      
       await emailjs.send(
-        emailjs.init(import.meta.env.VITE_EMAILJS_SERVICE_ID),
-        emailjs.init(import.meta.env.VITE_EMAILJS_TEMPLATE_ID),
+        import.meta.env.VITE_EMAILJS_SERVICE_ID,
+        import.meta.env.VITE_EMAILJS_TEMPLATE_ID,
         {
           from_name:  form.name,
           from_email: form.email,
           message:    form.message,
-          // This puts the sender's email as reply-to so you can reply directly
           reply_to:   form.email,
         },
+        import.meta.env.VITE_EMAILJS_PUBLIC_KEY
       );
 
       setStatus("sent");
       setForm({ name: "", email: "", message: "" });
-      // Reset back to idle after 5 seconds
       setTimeout(() => setStatus("idle"), 5000);
 
     } catch (err) {
